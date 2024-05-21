@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Analysis Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #4e54c8, #8f94fb);
+            color: #333; /* Changed text color to improve readability */
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #2ecc71;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #27ae60;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        .more-button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .more-button:hover {
+            background-color: #2980b9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .analysis-result {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: #333; 
+        }
+
+        .analysis-result h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* Improved styling for the Clear Results button */
+        #clearResults {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #clearResults:hover {
+            background-color: #c82333;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Text Analysis Tool</h1>
+      <form id="urlForm" method="POST" action="/analyze">
+        <label for="url">Enter URL:</label>
+        <input type="text" id="url" name="url" required />
+        <button type="submit">Analyze</button>
+      </form>
+      <div id="results"></div>
+      <button id="clearResults">Clear Results</button>
+    </div>
+
+    <script>
+      document
+        .getElementById("urlForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          var form = event.target;
+          var url = form.elements.url.value;
+          fetch(form.action, {
+            method: "POST",
+            body: new URLSearchParams(new FormData(form)),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.error) {
+                document.getElementById("results").textContent =
+                  "Error: " + data.error;
+              } else if (data.success && data.analysis_results) {
+                var resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = ""; // Clear previous results
+
+                
+                var analysisResults = document.createElement("div");
+                analysisResults.classList.add("analysis-result");
+
+                
+                var ageGroupStatement = document.createElement("p");
+                ageGroupStatement.textContent =
+                  "Age Group Statement: " +
+                  data.analysis_results.age_group_statement;
+                analysisResults.appendChild(ageGroupStatement);
+
+                
+                var moreButton = document.createElement("button");
+                moreButton.textContent = "More";
+                moreButton.classList.add("more-button");
+                analysisResults.appendChild(moreButton);
+
+                
+                var detailedResults = document.createElement("div");
+                detailedResults.classList.add("hidden");
+                Object.keys(data.analysis_results).forEach(function (key) {
+                  var p = document.createElement("p");
+                  p.textContent = key + ": " + data.analysis_results[key];
+                  detailedResults.appendChild(p);
+                });
+                analysisResults.appendChild(detailedResults);
+
+                
+                moreButton.addEventListener("click", function () {
+                  detailedResults.classList.toggle("hidden");
+                  if (detailedResults.classList.contains("hidden")) {
+                    moreButton.textContent = "More";
+                  } else {
+                    moreButton.textContent = "Less";
+                  }
+                });
+
+                resultsDiv.appendChild(analysisResults);
+              } else {
+                document.getElementById("results").textContent =
+                  "Unknown response from server.";
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              document.getElementById("results").textContent =
+                "An error occurred.";
+            });
+        });
+
+      
+      document
+        .getElementById("clearResults")
+        .addEventListener("click", function () {
+          document.getElementById("results").innerHTML = ""; 
+        });
+    </script>
+  </body>
+</html>
